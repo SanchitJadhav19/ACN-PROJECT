@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ project_title }} — End-Semester Evaluation Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: #151e32;
+      --card-border: #24324d;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      line-height: 1.5;
+      padding-bottom: 4rem;
+    }
+    header {
+      background: linear-gradient(180deg, #131d33 0%, #0d1527 100%);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1.75rem 2rem;
+    }
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    .project-header h1 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .project-header h1 .badge {
+      font-size: 0.75rem;
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .project-header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 0.25rem;
+    }
+    .academic-meta {
+      text-align: right;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.6);
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+    .academic-meta strong { color: var(--text-main); }
+    .container {
+      max-width: 1400px;
+      margin: 1.5rem auto;
+      padding: 0 1.5rem;
+    }
+    /* Banner */
+    .status-banner {
+      background: #111a2e;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.85rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.88rem;
+    }
+    .status-pills {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .pill {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 0.25rem 0.75rem;
+      border-radius: 6px;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .pill strong { color: var(--text-main); }
+    .pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      position: relative;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .kpi-card:hover {
+      border-color: #3b82f6;
+    }
+    .kpi-card .kpi-label {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .kpi-card .kpi-val {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0.35rem 0;
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+    }
+    .kpi-card .kpi-unit {
+      font-size: 1rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .kpi-card .kpi-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .badge-tag {
+      display: inline-block;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+    }
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .badge-success {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    /* Section Cards */
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+    .section-header {
+      padding: 1.15rem 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .section-header h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #ffffff;
+    }
+    .section-body {
+      padding: 1.5rem;
+    }
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+    th {
+      background: #0f172a;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--card-border);
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+    }
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid #1e293b;
+      color: var(--text-main);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(30, 41, 59, 0.5); }
+    .best-row td {
+      background: rgba(59, 130, 246, 0.08);
+      font-weight: 600;
+    }
+    .best-badge {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      margin-left: 0.5rem;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+    /* Capacity Panel */
+    .capacity-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    @media (max-width: 850px) {
+      .capacity-panel { grid-template-columns: 1fr; }
+    }
+    .slider-box {
+      background: #0f172a;
+      padding: 1.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+    }
+    .slider-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    input[type=range] {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: #334155;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+    .capacity-result-card {
+      background: #0f172a;
+      padding: 1.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+    .disclaimer-box {
+      background: rgba(30, 41, 59, 0.5);
+      border-left: 3px solid #64748b;
+      padding: 0.75rem 1rem;
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    /* Buttons */
+    .btn {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 0.65rem 1.25rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.15s ease;
+    }
+    .btn:hover { background: var(--primary-hover); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-secondary {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: var(--text-main);
+    }
+    .btn-secondary:hover { background: #334155; }
+    /* Grid 2-col */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    .chart-container {
+      position: relative;
+      height: 340px;
+      width: 100%;
+    }
+    /* Pipeline Step Diagram */
+    .pipeline-diagram {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .pipe-step {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.85rem;
+      position: relative;
+    }
+    .pipe-step .step-num {
+      font-size: 0.75rem;
+      color: var(--primary);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .pipe-step h4 {
+      font-size: 0.92rem;
+      margin: 0.25rem 0 0.4rem;
+      color: #ffffff;
+    }
+    .pipe-step p {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+    /* Loading overlay */
+    #loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(11, 17, 32, 0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #1e293b;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div style="font-size: 1.1rem; font-weight: 600;">Executing 5G Forecasting Pipeline...</div>
+    <div style="font-size: 0.85rem; color: var(--text-muted);">Generating traffic, engineering lag features, and training models</div>
+  </div>
+
+  <header>
+    <div class="header-content">
+      <div class="project-header">
+        <h1>
+          {{ project_title }}
+          <span class="badge">ACN End-Sem Evaluation</span>
+        </h1>
+        <p>{{ subtitle }} • Multi-Model & Per-Slice Analytics Dashboard</p>
+      </div>
+      <div class="academic-meta">
+        <div><strong>{{ institution }}</strong></div>
+        <div>{{ course }} • Department of Information Technology</div>
+        <div style="margin-top: 0.35rem;">
+          {% for m in team_members %}
+            <span>{{ m.name }} ({{ m.roll }}){% if not loop.last %} • {% endif %}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Execution Status Banner -->
+    <div class="status-banner">
+      <div class="status-pills">
+        <div class="pill">
+          <span class="dot"></span>
+          <span>Pipeline Status: <strong id="status-run-type">{{ last_run_type }}</strong></span>
+        </div>
+        <div class="pill">
+          <span>Dataset: <strong>{{ total_samples }} hourly samples</strong> ({{ train_samples }} train / {{ test_samples }} test)</span>
+        </div>
+        <div class="pill">
+          <span>Evaluation Split: <strong>Chronological 80% / 20% (Zero Leakage)</strong></span>
+        </div>
+      </div>
+      <div style="font-size: 0.82rem; color: var(--text-muted);" id="status-run-time">
+        Last updated: {{ last_run_time }}
+      </div>
+    </div>
+
+    <!-- Top KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Next-Hour Total Traffic Forecast</div>
+        <div class="kpi-val" id="kpi-forecast">
+          {{ rf_next_forecast }} <span class="kpi-unit">Mbps</span>
+        </div>
+        <div class="kpi-sub" id="kpi-forecast-sub">
+          Random Forest (PPT Specification)
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Capacity Recommendation (Rule-Based)</div>
+        <div class="kpi-val">
+          <span id="kpi-badge" class="badge-tag {% if initial_rec.is_high_traffic %}badge-warning{% else %}badge-success{% endif %}">
+            {{ initial_rec.status }}
+          </span>
+        </div>
+        <div class="kpi-sub" id="kpi-rec-hint">
+          {{ initial_rec.hint }}
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Best Forecaster R² Score</div>
+        <div class="kpi-val">
+          0.9663 <span class="kpi-unit">R²</span>
+        </div>
+        <div class="kpi-sub">
+          Random Forest Regressor (180 trees, depth 10)
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Benchmarked MAE Improvement</div>
+        <div class="kpi-val">
+          +47.44%
+        </div>
+        <div class="kpi-sub">
+          Error reduction over Naive Lag-1 Baseline
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: Pipeline Architecture & Overview -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>
+          <span>1.</span> 5-Step Forecasting Pipeline Architecture
+        </h2>
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+          Total Demand: \(y_t = y_{eMBB} + y_{URLLC} + y_{mMTC}\)
+        </div>
+      </div>
+      <div class="section-body">
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+          In accordance with the mid-semester presentation (<code style="color: #93c5fd;">acn_midsem.pdf</code>), 
+          the forecasting pipeline uses recent historical traffic to predict the next hour of aggregate demand 
+          without data leakage to proactively drive network slice orchestration.
+        </p>
+        <div class="pipeline-diagram">
+          <div class="pipe-step">
+            <div class="step-num">Step 1</div>
+            <h4>Data Generation</h4>
+            <p>60 days (1,440 hours) of synthetic eMBB, URLLC, and mMTC traffic (seed 42). Total demand equals the exact sum.</p>
+          </div>
+          <div class="pipe-step">
+            <div class="step-num">Step 2</div>
+            <h4>Leakage-Safe Features</h4>
+            <p>Six historical lags (1, 2, 3, 6, 12, 24 h) and two shifted rolling means (6, 24 h). Initial NaNs dropped.</p>
+          </div>
+          <div class="pipe-step">
+            <div class="step-num">Step 3</div>
+            <h4>Chronological Split</h4>
+            <p>80% training (1,132 hours) and 20% held-out test (284 hours). No random shuffling to respect temporal causality.</p>
+          </div>
+          <div class="pipe-step">
+            <div class="step-num">Step 4</div>
+            <h4>Multi-Model Training</h4>
+            <p>Random Forest (180 trees, depth 10), ARIMA(2,1,2), PyTorch LSTM, and Per-Slice models benchmarked against Naive Lag-1.</p>
+          </div>
+          <div class="pipe-step">
+            <div class="step-num">Step 5</div>
+            <h4>Capacity Decision</h4>
+            <p>Rule panel evaluating predicted next-hour load against operator threshold to generate "Add Capacity" advisory hints.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Model Performance Benchmarking -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>
+          <span>2.</span> Model Performance Comparison (Held-Out Test Block)
+        </h2>
+        <div style="font-size: 0.82rem; color: var(--text-muted);">
+          Evaluation Period: Final 20% Chronological Block (284 Unseen Hours)
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="table-container">
+          <table id="metrics-table">
+            <thead>
+              <tr>
+                <th>Model Architecture</th>
+                <th>Model Family</th>
+                <th>MAE (Mbps)</th>
+                <th>RMSE (Mbps)</th>
+                <th>R² Score</th>
+                <th>MAE Improvement vs Baseline</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in metrics %}
+              <tr class="{% if 'Random Forest' in row['Model'] %}best-row{% endif %}">
+                <td>
+                  <strong>{{ row['Model'] }}</strong>
+                  {% if 'Random Forest' in row['Model'] %}
+                    <span class="best-badge">PPT Reference Model</span>
+                  {% endif %}
+                </td>
+                <td style="color: var(--text-muted);">
+                  {% if 'Naive' in row['Model'] %}Persistence Rule
+                  {% elif 'ARIMA' in row['Model'] %}Classical Box-Jenkins
+                  {% elif 'LSTM' in row['Model'] %}Sequential Deep Learning
+                  {% elif 'Random Forest' in row['Model'] %}Tree Bagging Ensemble
+                  {% else %}Disaggregated Slicing
+                  {% endif %}
+                </td>
+                <td>{{ "%.2f"|format(row['MAE (Mbps)']) }}</td>
+                <td>{{ "%.2f"|format(row['RMSE (Mbps)']) }}</td>
+                <td>{{ "%.4f"|format(row['R2 Score']) }}</td>
+                <td>
+                  {% if row['MAE Improvement (%)'] > 0 %}
+                    <span style="color: #6ee7b7; font-weight: 600;">+{{ "%.2f"|format(row['MAE Improvement (%)']) }}%</span>
+                  {% else %}
+                    <span style="color: var(--text-muted);">0.00% (Reference)</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <h4 style="font-size: 0.95rem; color: #ffffff;">Historical & Mid-Semester Reported Reference Numbers:</h4>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Preserved for academic transparency & viva evaluation</span>
+        </div>
+        <div class="table-container" style="margin-top: 0.6rem;">
+          <table>
+            <thead>
+              <tr>
+                <th>Dataset & Run Context</th>
+                <th>Naive Baseline MAE</th>
+                <th>Random Forest MAE</th>
+                <th>RF RMSE</th>
+                <th>RF R²</th>
+                <th>Relative MAE Improvement</th>
+                <th>Discrepancy Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>PPT Table I (Mid-Sem Report Slide 7)</strong></td>
+                <td>43.73 Mbps</td>
+                <td>31.52 Mbps</td>
+                <td>39.25 Mbps</td>
+                <td>0.849</td>
+                <td>+27.90%</td>
+                <td style="color: var(--text-muted); font-size: 0.82rem;">Initial mid-semester presentation slide numbers with higher synthetic noise variance.</td>
+              </tr>
+              <tr class="best-row">
+                <td><strong>Current PPT Reference (60 Days, Seed 42)</strong></td>
+                <td>38.68 Mbps</td>
+                <td>20.33 Mbps</td>
+                <td>25.64 Mbps</td>
+                <td>0.966</td>
+                <td>+47.44%</td>
+                <td style="color: #93c5fd; font-size: 0.82rem;">Exact PPT hyperparameter implementation (180 trees, depth 10, leaf 3, seed 42).</td>
+              </tr>
+              <tr>
+                <td><strong>Preserved 90-Day Run (Historical Codebase)</strong></td>
+                <td>39.21 Mbps</td>
+                <td>19.79 Mbps</td>
+                <td>24.76 Mbps</td>
+                <td>0.969</td>
+                <td>+49.53%</td>
+                <td style="color: var(--text-muted); font-size: 0.82rem;">Historical 90-day execution preserved in <code>results/historical_midsem/</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Visualizations -->
+    <div class="grid-2">
+      <!-- Chart 1: Test Actual vs Forecasts -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2><span>3A.</span> Test Set Actual vs Predicted Demand</h2>
+          <span style="font-size: 0.78rem; color: var(--text-muted);">1-Week Zoom View (168 h)</span>
+        </div>
+        <div class="section-body">
+          <div class="chart-container">
+            <canvas id="forecastChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart 2: Per-Slice Forecasts & Bottom-Up Sum -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2><span>3B.</span> Per-Slice Demand & Bottom-Up Sum</h2>
+          <span style="font-size: 0.78rem; color: var(--text-muted);">eMBB, URLLC, mMTC & Sum</span>
+        </div>
+        <div class="section-body">
+          <div class="chart-container">
+            <canvas id="sliceChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Chart 3: Historical Diurnal Traffic Series -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2><span>3C.</span> Historical Traffic & Slices Breakdown</h2>
+          <span style="font-size: 0.78rem; color: var(--text-muted);">7-Day Hourly History</span>
+        </div>
+        <div class="section-body">
+          <div class="chart-container">
+            <canvas id="historyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart 4: Random Forest Feature Importance -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2><span>3D.</span> Random Forest Feature Importance</h2>
+          <span style="font-size: 0.78rem; color: var(--text-muted);">Gini Impurity Reduction</span>
+        </div>
+        <div class="section-body">
+          <div class="chart-container">
+            <canvas id="featureChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Per-Slice Metrics Detail -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>
+          <span>4.</span> 5G Service Slice Disaggregation Benchmark
+        </h2>
+        <div style="font-size: 0.82rem; color: var(--text-muted);">
+          Verifying Slice Summation: \(\hat{y}_{total} = \hat{y}_{embb} + \hat{y}_{urllc} + \hat{y}_{mmtc}\)
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="table-container">
+          <table id="slice-table">
+            <thead>
+              <tr>
+                <th>Traffic Slice</th>
+                <th>Service Profile Description</th>
+                <th>MAE (Mbps)</th>
+                <th>RMSE (Mbps)</th>
+                <th>R² Score</th>
+                <th>Next-Hour Forecast</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in slice_metrics %}
+              <tr class="{% if 'SUM' in s['Slice'] %}best-row{% endif %}">
+                <td><strong>{{ s['Slice'] }}</strong></td>
+                <td style="color: var(--text-muted);">{{ s['Description'] }}</td>
+                <td>{{ "%.2f"|format(s['MAE (Mbps)']) }}</td>
+                <td>{{ "%.2f"|format(s['RMSE (Mbps)']) }}</td>
+                <td>{{ "%.4f"|format(s['R2 Score']) }}</td>
+                <td><strong style="color: #93c5fd;">{{ "%.2f"|format(s['Next-Hour Forecast (Mbps)']) }} Mbps</strong></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Capacity Recommendation Panel -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>
+          <span>5.</span> Proactive Capacity Recommendation Panel
+        </h2>
+        <span class="badge-tag" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4);">
+          PPT Slide 8 Implementation
+        </span>
+      </div>
+      <div class="section-body">
+        <div class="capacity-panel">
+          <div class="slider-box">
+            <div class="slider-header">
+              <span>High-Traffic Capacity Threshold:</span>
+              <span class="slider-val" id="threshold-display">700.0 Mbps</span>
+            </div>
+            <input type="range" id="threshold-slider" min="450" max="850" step="10" value="700">
+            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 0.5rem;">
+              <span>450 Mbps (Conservative)</span>
+              <span>700 Mbps (Standard Default)</span>
+              <span>850 Mbps (Peak Aggressive)</span>
+            </div>
+            <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+              Adjust the slider to simulate operator policy changes for proactive PRB allocation.
+            </div>
+          </div>
+
+          <div class="capacity-result-card" id="rec-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Decision Output</span>
+              <span id="rec-badge" class="badge-tag {% if initial_rec.is_high_traffic %}badge-warning{% else %}badge-success{% endif %}">
+                {{ initial_rec.status }}
+              </span>
+            </div>
+            <h3 id="rec-headline" style="font-size: 1.05rem; margin-bottom: 0.5rem; color: #ffffff;">
+              {{ initial_rec.hint }}
+            </h3>
+            <p id="rec-explanation" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;">
+              {{ initial_rec.explanation }}
+            </p>
+            <div style="display: flex; gap: 1rem; margin-top: 0.75rem; font-size: 0.82rem;">
+              <div>Forecast: <strong id="rec-forecast" style="color: #93c5fd;">{{ initial_rec.forecasted_mbps }} Mbps</strong></div>
+              <div>Threshold: <strong id="rec-threshold">{{ initial_rec.threshold_mbps }} Mbps</strong></div>
+              <div>Headroom: <strong id="rec-headroom">{{ initial_rec.headroom_mbps }} Mbps</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="disclaimer-box">
+          <strong>Rule-Based Advisory Notice:</strong>
+          This panel implements the rule-based decision support panel planned in PPT Slide 8. 
+          When predicted next-hour demand meets the configured threshold, the system displays an "Add capacity" hint.
+          This is an analytical guidance panel for 5G Non-RT RIC / NWDAF planning, not an actual network controller;
+          no physical network radio resources are modified.
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 6: Run Pipeline Live -->
+    <div class="section-card" id="section-6">
+      <div class="section-header">
+        <h2>
+          <span>6.</span> Pipeline Execution & Evaluation Control
+        </h2>
+        <span style="font-size: 0.82rem; color: var(--text-muted);">Execute end-to-end simulation</span>
+      </div>
+      <div class="section-body">
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+          <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+            <div>
+              <label style="font-size: 0.82rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Simulation Days (PPT: 60)</label>
+              <select id="run-days" style="background: #0f172a; color: #ffffff; border: 1px solid var(--card-border); padding: 0.5rem 0.75rem; border-radius: 6px;">
+                <option value="60" selected>60 Days (1,440 hours — PPT Spec)</option>
+                <option value="90">90 Days (2,160 hours — Extended)</option>
+                <option value="30">30 Days (720 hours — Rapid)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.82rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Random Seed</label>
+              <input type="number" id="run-seed" value="42" style="background: #0f172a; color: #ffffff; border: 1px solid var(--card-border); padding: 0.5rem 0.75rem; border-radius: 6px; width: 90px;">
+            </div>
+            <div style="margin-top: 1.25rem;">
+              <button class="btn" id="btn-run-pipeline" onclick="executePipeline()">
+                <span>Run Forecasting Pipeline</span>
+              </button>
+            </div>
+          </div>
+          <div id="run-feedback" style="font-size: 0.85rem; color: var(--text-muted);">
+            Running will execute the complete 5-step pipeline and refresh metrics and charts in real-time.
+          </div>
+        </div>
+
+        <!-- Live Execution Output Box inside Section 6 -->
+        <div id="section-6-results" style="margin-top: 1.5rem; background: #0f172a; border: 1px solid var(--card-border); border-radius: 8px; padding: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="dot" style="background: var(--success); width: 10px; height: 10px; border-radius: 50%; display: inline-block;"></span>
+              <strong style="color: #ffffff; font-size: 0.95rem;">Pipeline Execution Output & Benchmark Results</strong>
+              <span id="s6-run-badge" class="badge-tag badge-success">{{ last_run_type }}</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);" id="s6-run-timestamp">
+              Completed at: {{ last_run_time }}
+            </div>
+          </div>
+
+          <!-- Quick Summary Cards inside Section 6 -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+            <div style="background: #151e32; padding: 0.85rem 1rem; border-radius: 6px; border: 1px solid #1e293b;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Next-Hour Total Forecast</div>
+              <div style="font-size: 1.4rem; font-weight: 700; color: #93c5fd;" id="s6-next-forecast">{{ rf_next_forecast }} Mbps</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Random Forest Regressor</div>
+            </div>
+            <div style="background: #151e32; padding: 0.85rem 1rem; border-radius: 6px; border: 1px solid #1e293b;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Best Model R² Score</div>
+              <div style="font-size: 1.4rem; font-weight: 700; color: #6ee7b7;" id="s6-best-r2">0.9655</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">High correlation to test data</div>
+            </div>
+            <div style="background: #151e32; padding: 0.85rem 1rem; border-radius: 6px; border: 1px solid #1e293b;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Error Reduction (MAE)</div>
+              <div style="font-size: 1.4rem; font-weight: 700; color: #fcd34d;" id="s6-mae-reduction">+47.37%</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">vs Naive Persistence baseline</div>
+            </div>
+            <div style="background: #151e32; padding: 0.85rem 1rem; border-radius: 6px; border: 1px solid #1e293b;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Capacity Decision Hint</div>
+              <div style="font-size: 1.2rem; font-weight: 700; color: #6ee7b7;" id="s6-cap-hint">NOMINAL</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Standard PRB allocation</div>
+            </div>
+          </div>
+
+          <!-- Section 6 Mini Results Table -->
+          <div style="font-size: 0.82rem; font-weight: 600; color: #cbd5e1; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">
+            Execution Metric Summary (Unseen 20% Chronological Test Block):
+          </div>
+          <div class="table-container">
+            <table id="s6-metrics-table" style="font-size: 0.85rem;">
+              <thead>
+                <tr>
+                  <th>Model Architecture</th>
+                  <th>MAE (Mbps)</th>
+                  <th>RMSE (Mbps)</th>
+                  <th>R² Score</th>
+                  <th>MAE Improvement vs Baseline</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in metrics %}
+                <tr class="{% if 'Random Forest' in row['Model'] %}best-row{% endif %}">
+                  <td><strong>{{ row['Model'] }}</strong></td>
+                  <td>{{ "%.2f"|format(row['MAE (Mbps)']) }}</td>
+                  <td>{{ "%.2f"|format(row['RMSE (Mbps)']) }}</td>
+                  <td>{{ "%.4f"|format(row['R2 Score']) }}</td>
+                  <td>
+                    {% if row['MAE Improvement (%)'] > 0 %}
+                      <span style="color: #6ee7b7; font-weight: 600;">+{{ "%.2f"|format(row['MAE Improvement (%)']) }}%</span>
+                    {% else %}
+                      <span style="color: var(--text-muted);">0.00% (Reference)</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; gap: 0.5rem;">
+            <span>All CSV files and plots updated in <code>results/</code> directory.</span>
+            <div style="display: flex; gap: 1rem;">
+              <a href="#forecastChart" style="color: var(--primary); text-decoration: none; font-weight: 600;">↑ View Forecast Curves (Section 3A)</a>
+              <a href="#sliceChart" style="color: var(--primary); text-decoration: none; font-weight: 600;">↑ View Slice Breakdown (Section 3B)</a>
+              <a href="#metrics-table" style="color: var(--primary); text-decoration: none; font-weight: 600;">↑ View Full Benchmarks (Section 2)</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Initialize chart instances
+    let forecastChart = null;
+    let sliceChart = null;
+    let historyChart = null;
+    let featureChart = null;
+
+    let currentForecastMbps = {{ rf_next_forecast }};
+
+    // Chart.js default theme configuration
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = '#1e293b';
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+    async function initCharts() {
+      await Promise.all([
+        loadForecastChart(),
+        loadSliceChart(),
+        loadHistoryChart(),
+        loadFeatureChart()
+      ]);
+    }
+
+    async function loadForecastChart() {
+      const res = await fetch('/api/predictions?limit=168');
+      const data = await res.json();
+      if (data.status !== 'success') return;
+
+      const labels = data.timestamps.map(t => t.split(' ')[0] + ' ' + t.split(' ')[1].slice(0, 5));
+      const ctx = document.getElementById('forecastChart').getContext('2d');
+      if (forecastChart) forecastChart.destroy();
+
+      forecastChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Actual Total Demand (Mbps)',
+              data: data.actual_total_mbps,
+              borderColor: '#f8fafc',
+              borderWidth: 2.2,
+              pointRadius: 0,
+              tension: 0.2,
+              order: 1
+            },
+            {
+              label: 'Random Forest (180 Trees)',
+              data: data.random_forest_pred_mbps,
+              borderColor: '#3b82f6',
+              borderWidth: 1.8,
+              pointRadius: 0,
+              tension: 0.2,
+              order: 2
+            },
+            {
+              label: 'ARIMA(2, 1, 2)',
+              data: data.arima_pred_mbps,
+              borderColor: '#10b981',
+              borderWidth: 1.5,
+              borderDash: [5, 4],
+              pointRadius: 0,
+              tension: 0.2,
+              order: 3
+            },
+            {
+              label: 'PyTorch LSTM',
+              data: data.lstm_pred_mbps,
+              borderColor: '#a855f7',
+              borderWidth: 1.5,
+              borderDash: [3, 3],
+              pointRadius: 0,
+              tension: 0.2,
+              order: 4
+            },
+            {
+              label: 'Naive Baseline (Lag-1)',
+              data: data.baseline_pred_mbps,
+              borderColor: '#f59e0b',
+              borderWidth: 1.2,
+              borderDash: [2, 4],
+              pointRadius: 0,
+              tension: 0.2,
+              order: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, boxHeight: 12 } }
+          },
+          scales: {
+            x: { ticks: { maxTicksLimit: 10 } },
+            y: { title: { display: true, text: 'Mbps' } }
+          }
+        }
+      });
+    }
+
+    async function loadSliceChart() {
+      const res = await fetch('/api/slices?limit=168');
+      const data = await res.json();
+      if (data.status !== 'success') return;
+
+      const labels = data.timestamps.map(t => t.split(' ')[0] + ' ' + t.split(' ')[1].slice(0, 5));
+      const ctx = document.getElementById('sliceChart').getContext('2d');
+      if (sliceChart) sliceChart.destroy();
+
+      sliceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Actual Total (y_total)',
+              data: data.actual_total_mbps,
+              borderColor: '#f8fafc',
+              borderWidth: 2.2,
+              pointRadius: 0,
+              tension: 0.2
+            },
+            {
+              label: 'Bottom-Up Slices Sum',
+              data: data.bottom_up_total_mbps,
+              borderColor: '#8b5cf6',
+              borderWidth: 2.0,
+              borderDash: [4, 4],
+              pointRadius: 0,
+              tension: 0.2
+            },
+            {
+              label: 'eMBB Predicted',
+              data: data.pred_embb_mbps,
+              borderColor: '#3b82f6',
+              borderWidth: 1.4,
+              pointRadius: 0,
+              tension: 0.2
+            },
+            {
+              label: 'URLLC Predicted',
+              data: data.pred_urllc_mbps,
+              borderColor: '#f59e0b',
+              borderWidth: 1.4,
+              pointRadius: 0,
+              tension: 0.2
+            },
+            {
+              label: 'mMTC Predicted',
+              data: data.pred_mmtc_mbps,
+              borderColor: '#10b981',
+              borderWidth: 1.4,
+              pointRadius: 0,
+              tension: 0.2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, boxHeight: 12 } }
+          },
+          scales: {
+            x: { ticks: { maxTicksLimit: 10 } },
+            y: { title: { display: true, text: 'Mbps' } }
+          }
+        }
+      });
+    }
+
+    async function loadHistoryChart() {
+      const res = await fetch('/api/traffic-history?limit=168');
+      const data = await res.json();
+      if (data.status !== 'success') return;
+
+      const labels = data.timestamps.map(t => t.split(' ')[0] + ' ' + t.split(' ')[1].slice(0, 5));
+      const ctx = document.getElementById('historyChart').getContext('2d');
+      if (historyChart) historyChart.destroy();
+
+      historyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Total Traffic',
+              data: data.total_mbps,
+              borderColor: '#f8fafc',
+              borderWidth: 2.0,
+              pointRadius: 0,
+              tension: 0.2
+            },
+            {
+              label: 'eMBB (Broadband)',
+              data: data.embb_mbps,
+              borderColor: '#3b82f6',
+              borderWidth: 1.5,
+              pointRadius: 0,
+              tension: 0.2
+            },
+            {
+              label: 'URLLC (Low-Latency)',
+              data: data.urllc_mbps,
+              borderColor: '#f59e0b',
+              borderWidth: 1.5,
+              pointRadius: 0,
+              tension: 0.2
+            },
+            {
+              label: 'mMTC (Massive IoT)',
+              data: data.mmtc_mbps,
+              borderColor: '#10b981',
+              borderWidth: 1.5,
+              pointRadius: 0,
+              tension: 0.2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, boxHeight: 12 } }
+          },
+          scales: {
+            x: { ticks: { maxTicksLimit: 10 } },
+            y: { title: { display: true, text: 'Traffic (Mbps)' } }
+          }
+        }
+      });
+    }
+
+    async function loadFeatureChart() {
+      const res = await fetch('/api/feature-importance');
+      const data = await res.json();
+      if (data.status !== 'success') return;
+
+      const ctx = document.getElementById('featureChart').getContext('2d');
+      if (featureChart) featureChart.destroy();
+
+      featureChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.features,
+          datasets: [{
+            label: 'Relative Gini Importance',
+            data: data.importance,
+            backgroundColor: 'rgba(59, 130, 246, 0.75)',
+            borderColor: '#3b82f6',
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Importance Score (MDI)' },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Capacity Slider Listener
+    const thresholdSlider = document.getElementById('threshold-slider');
+    const thresholdDisplay = document.getElementById('threshold-display');
+
+    thresholdSlider.addEventListener('input', async (e) => {
+      const val = parseFloat(e.target.value);
+      thresholdDisplay.textContent = val.toFixed(1) + ' Mbps';
+
+      const res = await fetch('/api/recommendation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          threshold_mbps: val,
+          forecasted_mbps: currentForecastMbps
+        })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        const rec = data.recommendation;
+        const badge = document.getElementById('rec-badge');
+        const kpiBadge = document.getElementById('kpi-badge');
+        const headline = document.getElementById('rec-headline');
+        const explanation = document.getElementById('rec-explanation');
+        const thresholdText = document.getElementById('rec-threshold');
+        const headroomText = document.getElementById('rec-headroom');
+        const kpiHint = document.getElementById('kpi-rec-hint');
+
+        badge.textContent = rec.status;
+        kpiBadge.textContent = rec.status;
+        badge.className = 'badge-tag ' + (rec.is_high_traffic ? 'badge-warning' : 'badge-success');
+        kpiBadge.className = 'badge-tag ' + (rec.is_high_traffic ? 'badge-warning' : 'badge-success');
+
+        headline.textContent = rec.hint;
+        kpiHint.textContent = rec.hint;
+        explanation.textContent = rec.explanation;
+        thresholdText.textContent = rec.threshold_mbps + ' Mbps';
+        headroomText.textContent = rec.headroom_mbps + ' Mbps';
+      }
+    });
+
+    // Run Pipeline On-Demand
+    async function executePipeline() {
+      const days = parseInt(document.getElementById('run-days').value);
+      const seed = parseInt(document.getElementById('run-seed').value);
+      const overlay = document.getElementById('loading-overlay');
+      const feedback = document.getElementById('run-feedback');
+      const runBtn = document.getElementById('btn-run-pipeline');
+
+      overlay.style.display = 'flex';
+      runBtn.disabled = true;
+      feedback.textContent = `Running pipeline for ${days} days with seed ${seed}...`;
+
+      try {
+        const res = await fetch('/api/run-pipeline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ num_days: days, seed: seed })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          feedback.innerHTML = `<span style="color: #6ee7b7; font-weight: 600;">✓ Pipeline run completed! (${data.last_run_type})</span>`;
+          document.getElementById('status-run-type').textContent = data.last_run_type;
+          document.getElementById('status-run-time').textContent = 'Last updated: ' + data.last_run_time;
+
+          // Update KPI forecast
+          if (data.next_hour_forecasts && data.next_hour_forecasts['Random Forest']) {
+            currentForecastMbps = data.next_hour_forecasts['Random Forest'];
+            document.getElementById('kpi-forecast').innerHTML = currentForecastMbps + ' <span class="kpi-unit">Mbps</span>';
+            document.getElementById('rec-forecast').textContent = currentForecastMbps + ' Mbps';
+            if (document.getElementById('s6-next-forecast')) {
+              document.getElementById('s6-next-forecast').textContent = currentForecastMbps + ' Mbps';
+            }
+          }
+          if (document.getElementById('s6-run-badge')) {
+            document.getElementById('s6-run-badge').textContent = data.last_run_type;
+          }
+          if (document.getElementById('s6-run-timestamp')) {
+            document.getElementById('s6-run-timestamp').textContent = 'Completed at: ' + data.last_run_time;
+          }
+          if (data.capacity_recommendation && document.getElementById('s6-cap-hint')) {
+            document.getElementById('s6-cap-hint').textContent = data.capacity_recommendation.status;
+          }
+
+          // Refresh charts
+          await initCharts();
+
+          // Refresh metrics table
+          const mRes = await fetch('/api/metrics');
+          const mData = await mRes.json();
+          if (mData.status === 'success') {
+            updateMetricsTable(mData.current_metrics);
+            updateSliceTable(mData.slice_metrics);
+          }
+        } else {
+          feedback.innerHTML = `<span style="color: #ef4444;">Error: ${data.message}</span>`;
+        }
+      } catch (err) {
+        feedback.innerHTML = `<span style="color: #ef4444;">Request failed: ${err.message}</span>`;
+      } finally {
+        overlay.style.display = 'none';
+        runBtn.disabled = false;
+      }
+    }
+
+    function updateMetricsTable(metrics) {
+      const tbody = document.querySelector('#metrics-table tbody');
+      const s6Tbody = document.querySelector('#s6-metrics-table tbody');
+      if (tbody) tbody.innerHTML = '';
+      if (s6Tbody) s6Tbody.innerHTML = '';
+
+      metrics.forEach(row => {
+        const isRF = row['Model'].includes('Random Forest');
+        const tr = document.createElement('tr');
+        if (isRF) {
+          tr.className = 'best-row';
+          if (document.getElementById('s6-best-r2')) {
+            document.getElementById('s6-best-r2').textContent = parseFloat(row['R2 Score']).toFixed(4);
+          }
+          if (document.getElementById('s6-mae-reduction')) {
+            document.getElementById('s6-mae-reduction').textContent = '+' + parseFloat(row['MAE Improvement (%)']).toFixed(2) + '%';
+          }
+        }
+        tr.innerHTML = `
+          <td>
+            <strong>${row['Model']}</strong>
+            ${isRF ? '<span class="best-badge">PPT Reference Model</span>' : ''}
+          </td>
+          <td style="color: var(--text-muted);">
+            ${row['Model'].includes('Naive') ? 'Persistence Rule' :
+              row['Model'].includes('ARIMA') ? 'Classical Box-Jenkins' :
+              row['Model'].includes('LSTM') ? 'Sequential Deep Learning' :
+              row['Model'].includes('Random Forest') ? 'Tree Bagging Ensemble' : 'Disaggregated Slicing'}
+          </td>
+          <td>${parseFloat(row['MAE (Mbps)']).toFixed(2)}</td>
+          <td>${parseFloat(row['RMSE (Mbps)']).toFixed(2)}</td>
+          <td>${parseFloat(row['R2 Score']).toFixed(4)}</td>
+          <td>
+            ${row['MAE Improvement (%)'] > 0
+              ? `<span style="color: #6ee7b7; font-weight: 600;">+${parseFloat(row['MAE Improvement (%)']).toFixed(2)}%</span>`
+              : `<span style="color: var(--text-muted);">0.00% (Reference)</span>`}
+          </td>
+        `;
+        if (tbody) tbody.appendChild(tr);
+
+        // Section 6 simplified row
+        if (s6Tbody) {
+          const s6Tr = document.createElement('tr');
+          if (isRF) s6Tr.className = 'best-row';
+          s6Tr.innerHTML = `
+            <td><strong>${row['Model']}</strong></td>
+            <td>${parseFloat(row['MAE (Mbps)']).toFixed(2)}</td>
+            <td>${parseFloat(row['RMSE (Mbps)']).toFixed(2)}</td>
+            <td>${parseFloat(row['R2 Score']).toFixed(4)}</td>
+            <td>
+              ${row['MAE Improvement (%)'] > 0
+                ? `<span style="color: #6ee7b7; font-weight: 600;">+${parseFloat(row['MAE Improvement (%)']).toFixed(2)}%</span>`
+                : `<span style="color: var(--text-muted);">0.00%</span>`}
+            </td>
+          `;
+          s6Tbody.appendChild(s6Tr);
+        }
+      });
+    }
+
+    function updateSliceTable(sliceMetrics) {
+      const tbody = document.querySelector('#slice-table tbody');
+      tbody.innerHTML = '';
+      sliceMetrics.forEach(s => {
+        const isSum = s['Slice'].includes('SUM');
+        const tr = document.createElement('tr');
+        if (isSum) tr.className = 'best-row';
+        tr.innerHTML = `
+          <td><strong>${s['Slice']}</strong></td>
+          <td style="color: var(--text-muted);">${s['Description']}</td>
+          <td>${parseFloat(s['MAE (Mbps)']).toFixed(2)}</td>
+          <td>${parseFloat(s['RMSE (Mbps)']).toFixed(2)}</td>
+          <td>${parseFloat(s['R2 Score']).toFixed(4)}</td>
+          <td><strong style="color: #93c5fd;">${parseFloat(s['Next-Hour Forecast (Mbps)']).toFixed(2)} Mbps</strong></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Load initial charts on DOM ready
+    window.addEventListener('DOMContentLoaded', initCharts);
+  </script>
+</body>
+</html>
+

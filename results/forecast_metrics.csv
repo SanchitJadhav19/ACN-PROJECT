@@ -1,0 +1,6 @@
+Model,MAE (Mbps),RMSE (Mbps),R2 Score,MAE Improvement (%)
+Naive Baseline (Lag-1),40.05,48.52,0.8795,0.0
+"ARIMA(2, 1, 2)",26.26,32.36,0.9464,34.43
+LSTM Sequential Forecaster,24.86,30.77,0.9516,37.93
+Random Forest Regressor,21.35,26.28,0.9647,46.69
+Bottom-Up Slice Summation,21.22,26.58,0.9638,47.02

@@ -1,0 +1,9 @@
+feature,importance
+lag_24,0.9348
+lag_12,0.0213
+lag_1,0.0115
+lag_6,0.008
+rolling_mean_6,0.0076
+rolling_mean_24,0.0063
+lag_2,0.006
+lag_3,0.0047
