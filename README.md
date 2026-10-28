@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI-Based Network Data Analytics for 5G: Forecasting Total Traffic Demand from Recent History
 
 **Course:** Advanced Computer Networks (ACN) — End-Semester Evaluation  
@@ -298,3 +299,6 @@ docker run --rm -p 5000:5000 5g-traffic-forecasting python scripts/run_app.py --
 2. **[2] X. Foukas, G. Patounas, A. Elmokashfi, and M. K. Marina**, *"Network Slicing in 5G: Survey and Challenges,"* IEEE Communications Magazine, vol. 55, no. 5, pp. 94–100, May 2017.
 3. **[3] L. Breiman**, *"Random Forests,"* Machine Learning, vol. 45, no. 1, pp. 5–32, 2001.
 4. **[4] G. E. P. Box, G. M. Jenkins, G. C. Reinsel, and G. M. Ljung**, *Time Series Analysis: Forecasting and Control*, 5th ed., Hoboken, NJ: John Wiley & Sons, 2015.
+=======
+# ACN-PROJECT
+>>>>>>> origin/main
